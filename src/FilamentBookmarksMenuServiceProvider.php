@@ -2,7 +2,11 @@
 
 namespace TomatoPHP\FilamentBookmarksMenu;
 
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use TomatoPHP\FilamentBookmarksMenu\Services\FilamentBookmarksMenuServices;
 
 
 class FilamentBookmarksMenuServiceProvider extends ServiceProvider
@@ -48,10 +52,19 @@ class FilamentBookmarksMenuServiceProvider extends ServiceProvider
         //Register Routes
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
 
+        Livewire::component('bookmark-sidebar', \TomatoPHP\FilamentBookmarksMenu\Livewire\BookmarkSidebar::class);
+
+        $this->loadViewComponentsAs('filament', [
+            \TomatoPHP\FilamentBookmarksMenu\Components\BookmarkItem::class,
+            \TomatoPHP\FilamentBookmarksMenu\Components\BookmarkGroup::class,
+        ]);
+
     }
 
     public function boot(): void
     {
-        //you boot methods here
+        $this->app->bind('filament-bookmarks-menu', function () {
+            return new FilamentBookmarksMenuServices();
+        });
     }
 }
