@@ -47,7 +47,7 @@
         <x-filament-bookmark-group
             key="folders"
             :label="trans('filament-bookmarks-menu::messages.components.folders')"
-            :action="$this->getCreateAction('folder')"
+            :action="($this->getCreateAction('folder'))(['type' => 'folder'])"
         >
             @php $folders = \TomatoPHP\FilamentBookmarksMenu\Models\Bookmark::query()
             ->where('type', 'folder')
