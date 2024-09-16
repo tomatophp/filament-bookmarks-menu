@@ -6,12 +6,14 @@ use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
+use Nwidart\Modules\Module;
 use TomatoPHP\FilamentBookmarksMenu\Filament\Pages\Bookmarks;
 
 
 class FilamentBookmarksMenuPlugin implements Plugin
 {
 
+    private bool $isActive = false;
 
     public function getId(): string
     {
@@ -20,18 +22,40 @@ class FilamentBookmarksMenuPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel->pages([
-            Bookmarks::class
-        ]);
+        if(class_exists(Module::class)){
+            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')->isEnabled()){
+                $this->isActive = true;
+            }
+        }
+        else {
+            $this->isActive = true;
+        }
+
+        if($this->isActive) {
+            $panel->pages([
+                Bookmarks::class
+            ]);
+        }
     }
 
     public function boot(Panel $panel): void
     {
-        if($panel->getId() === filament()->getCurrentPanel()->getId()) {
-            FilamentView::registerRenderHook(
-                PanelsRenderHook::SIDEBAR_NAV_END,
-                fn() => view('filament-bookmarks-menu::sidebar')
-            );
+        if(class_exists(Module::class)){
+            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')->isEnabled()){
+                $this->isActive = true;
+            }
+        }
+        else {
+            $this->isActive = true;
+        }
+
+        if($this->isActive) {
+            if ($panel->getId() === filament()->getCurrentPanel()->getId()) {
+                FilamentView::registerRenderHook(
+                    PanelsRenderHook::SIDEBAR_NAV_END,
+                    fn() => view('filament-bookmarks-menu::sidebar')
+                );
+            }
         }
 
     }

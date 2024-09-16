@@ -1,0 +1,29 @@
+{
+    "name": "FilamentBookmarksMenu",
+    "alias": "filament-bookmarks-menu",
+    "description": {
+        "ar": "قم باضافة المفضلة والعلامات الى سجلات الموارد الخاصة بك وقم بالوصول اليها من الشريط الجانبي",
+        "en": "Add bookmarks and tags to your resources records and access theme form your sidebar",
+        "gr": "Add bookmarks and tags to your resources records and access theme form your sidebar",
+        "sp": "Add bookmarks and tags to your resources records and access theme form your sidebar"
+    },
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "TomatoPHP\\FilamentBookmarksMenu\\FilamentBookmarksMenuServiceProvider"
+    ],
+    "files": [],
+    "title": {
+        "ar": "المفضلة",
+        "en": "Bookmarks Menu",
+        "gr": "Bookmarks Menu",
+        "sp": "Bookmarks Menu"
+    },
+    "color": "#cc1448",
+    "icon": "heroicon-c-bookmark",
+    "placeholder": "https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/3x1io-tomato-bookmarks-menu.jpg",
+    "type": "plugin",
+    "version": "v1.0.2",
+    "github" : "https://github.com/tomatophp/filament-bookmarks-menu",
+    "docs" : "https://github.com/tomatophp/filament-bookmarks-menu"
+}
