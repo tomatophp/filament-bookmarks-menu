@@ -41,7 +41,7 @@ class FilamentBookmarksMenuPlugin implements Plugin
     public function boot(Panel $panel): void
     {
         if(class_exists(Module::class)){
-            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')->isEnabled()){
+            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')?->isEnabled()){
                 $this->isActive = true;
             }
         }
