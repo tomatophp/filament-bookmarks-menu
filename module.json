@@ -23,7 +23,7 @@
     "icon": "heroicon-c-bookmark",
     "placeholder": "https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/3x1io-tomato-bookmarks-menu.jpg",
     "type": "plugin",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "github" : "https://github.com/tomatophp/filament-bookmarks-menu",
     "docs" : "https://github.com/tomatophp/filament-bookmarks-menu"
 }

@@ -22,10 +22,8 @@ class FilamentBookmarksMenuPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        if(class_exists(Module::class)){
-            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')->isEnabled()){
-                $this->isActive = true;
-            }
+        if(class_exists(Module::class) && \Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')?->isEnabled()){
+            $this->isActive = true;
         }
         else {
             $this->isActive = true;
@@ -40,15 +38,6 @@ class FilamentBookmarksMenuPlugin implements Plugin
 
     public function boot(Panel $panel): void
     {
-        if(class_exists(Module::class)){
-            if(\Nwidart\Modules\Facades\Module::find('FilamentBookmarksMenu')?->isEnabled()){
-                $this->isActive = true;
-            }
-        }
-        else {
-            $this->isActive = true;
-        }
-
         if($this->isActive) {
             if ($panel->getId() === filament()->getCurrentPanel()->getId()) {
                 FilamentView::registerRenderHook(
