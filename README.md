@@ -11,6 +11,9 @@ Add bookmarks to your resource records and pages, group them in collections and 
 
 ## Screenshots
 
+![Demo dark](https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/demo-dark.png)
+![Demo light](https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/demo-light.png)
+
 ![Bookmark Menu](https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/bookmark-menu.png)
 ![Create Modal](https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/create-modal.png)
 ![Add Bookmark](https://raw.githubusercontent.com/tomatophp/filament-bookmarks-menu/master/arts/add-bookmark.png)
