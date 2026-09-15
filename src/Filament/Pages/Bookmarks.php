@@ -16,6 +16,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Livewire\Attributes\Locked;
 use TomatoPHP\FilamentBookmarksMenu\Models\Bookmark;
 use TomatoPHP\FilamentBookmarksMenu\Models\BookmarkLink;
@@ -34,9 +35,20 @@ class Bookmarks extends Page implements HasTable
 
     public function mount(): void
     {
+        $id = request()->query('id');
+
+        // Opened without an id (e.g. typed URL): go to the first bookmark the user can see, or the panel home.
+        if (blank($id)) {
+            $first = Bookmark::query()->visibleTo(auth()->user())->orderBy('id')->first();
+
+            throw new HttpResponseException(redirect()->to(
+                $first ? static::getUrl(['id' => $first->getKey()]) : filament()->getCurrentOrDefaultPanel()->getUrl()
+            ));
+        }
+
         $bookmark = Bookmark::query()
             ->visibleTo(auth()->user())
-            ->find(request()->query('id'));
+            ->find($id);
 
         abort_if(! $bookmark, 404);
 

@@ -33,8 +33,19 @@ it('renders the bookmarks page over http', function () {
         ->assertSee('Work');
 });
 
-it('returns 404 without a bookmark id', function () {
-    $this->get(Bookmarks::getUrl())->assertNotFound();
+it('redirects to the first visible bookmark when opened without an id', function () {
+    $bookmark = BookmarkFactory::new()->create(['name' => 'Work']);
+    BookmarkFactory::new()->create(['name' => 'Later']);
+
+    $this->get(Bookmarks::getUrl())->assertRedirect(Bookmarks::getUrl(['id' => $bookmark->id]));
+});
+
+it('redirects to the panel home when opened without an id and there are no bookmarks', function () {
+    $this->get(Bookmarks::getUrl())->assertRedirect(filament()->getPanel('admin')->getUrl());
+});
+
+it('returns 404 for an unknown bookmark id', function () {
+    $this->get(Bookmarks::getUrl(['id' => 999]))->assertNotFound();
 });
 
 it('edits a bookmark', function () {
