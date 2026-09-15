@@ -6,20 +6,24 @@ use TomatoPHP\FilamentBookmarksMenu\Services\Contracts\BookmarkType;
 
 class FilamentBookmarksMenuServices
 {
+    /**
+     * @var array<int, BookmarkType>
+     */
     public array $types = [];
 
-    public function register(array|BookmarkType $bookmarkType)
+    /**
+     * @param  array<int, BookmarkType>|BookmarkType  $bookmarkType
+     */
+    public function register(array|BookmarkType $bookmarkType): void
     {
-        if(is_array($bookmarkType)) {
-            foreach ($bookmarkType as $type) {
-                $this->types[] = $type;
-            }
-        }
-        else {
-            $this->types[] = $bookmarkType;
+        foreach (is_array($bookmarkType) ? $bookmarkType : [$bookmarkType] as $type) {
+            $this->types[] = $type;
         }
     }
 
+    /**
+     * @return array<int, BookmarkType>
+     */
     public function load(): array
     {
         return $this->types;

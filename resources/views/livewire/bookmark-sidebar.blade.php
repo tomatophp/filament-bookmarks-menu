@@ -1,70 +1,17 @@
-<div class="fi-sidebar-nav-groups -mx-2 flex flex-col gap-y-7">
-    @php $groups = \TomatoPHP\FilamentBookmarksMenu\Facades\FilamentBookmarksMenu::load(); @endphp
-    @if(count($groups))
-        @foreach($groups as $group)
-            @if($group->panel && $group->panel === filament()->getCurrentPanel()->getId())
-                <x-filament-bookmark-group
-                    :key="$group->key"
-                    :label="str($group->label)->contains('.') ? trans($group->label) : $group->label"
-                    :action="($this->getCreateAction($group->key))(['type' => $group->key])"
-                >
-                    @php $folders = \TomatoPHP\FilamentBookmarksMenu\Models\Bookmark::query()
-            ->where('type', $group->key)
-            ->where('is_private', false)
-            ->orWhere('is_private', true)
-            ->where('user_type', get_class(auth()->user()))
-            ->where('user_id', auth()->id())
-            ->where('type', $group->key)
-            ->get() @endphp
-                    @foreach($folders as $folder)
-                        <x-filament-bookmark-item :bookmark="$folder"/>
-                    @endforeach
-
-                </x-filament-bookmark-group>
-            @elseif(!$group->panel)
-                <x-filament-bookmark-group
-                    :key="$group->key"
-                    :label="str($group->label)->contains('.') ? trans($group->label) : $group->label"
-                    :action="($this->getCreateAction($group->key))(['type' => $group->key])"
-                >
-                    @php $folders = \TomatoPHP\FilamentBookmarksMenu\Models\Bookmark::query()
-            ->where('type', $group->key)
-            ->where('is_private', false)
-            ->orWhere('is_private', true)
-            ->where('user_type', get_class(auth()->user()))
-            ->where('user_id', auth()->id())
-            ->where('type', $group->key)
-            ->get() @endphp
-                    @foreach($folders as $folder)
-                        <x-filament-bookmark-item :bookmark="$folder"/>
-                    @endforeach
-
-                </x-filament-bookmark-group>
-            @endif
-
+<div class="fi-bookmarks-menu">
+    <ul class="fi-sidebar-nav-groups">
+        @foreach ($this->getGroups() as $group)
+            <x-filament-bookmark-group
+                :key="$group['key']"
+                :label="$group['label']"
+                :action="($this->createAction)(['type' => $group['key']])"
+            >
+                @foreach ($this->getBookmarks($group['key']) as $bookmark)
+                    <x-filament-bookmark-item :bookmark="$bookmark" />
+                @endforeach
+            </x-filament-bookmark-group>
         @endforeach
-    @else
-        <x-filament-bookmark-group
-            key="folders"
-            :label="trans('filament-bookmarks-menu::messages.components.folders')"
-            :action="($this->getCreateAction('folder'))(['type' => 'folder'])"
-        >
-            @php $folders = \TomatoPHP\FilamentBookmarksMenu\Models\Bookmark::query()
-            ->where('type', 'folder')
-            ->where('is_private', false)
-            ->orWhere('is_private', true)
-            ->where('user_type', get_class(auth()->user()))
-            ->where('user_id', auth()->id())
-            ->where('type', 'folder')
-            ->get() @endphp
-            @foreach($folders as $folder)
-                <x-filament-bookmark-item :bookmark="$folder"/>
-            @endforeach
-
-        </x-filament-bookmark-group>
-    @endif
-
+    </ul>
 
     <x-filament-actions::modals />
-
 </div>

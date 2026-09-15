@@ -9,6 +9,7 @@ trait HasPage
     public function page(string $page): static
     {
         $this->page = $page;
+
         return $this;
     }
 

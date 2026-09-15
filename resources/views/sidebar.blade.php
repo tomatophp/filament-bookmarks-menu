@@ -1,1 +1,1 @@
-@livewire(\TomatoPHP\FilamentBookmarksMenu\Livewire\BookmarkSidebar::class)
+<livewire:bookmark-sidebar />

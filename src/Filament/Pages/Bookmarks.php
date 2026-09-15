@@ -2,41 +2,52 @@
 
 namespace TomatoPHP\FilamentBookmarksMenu\Filament\Pages;
 
-use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Forms\Components\ColorPicker;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\BulkAction;
-use Filament\Tables\Actions\DeleteAction;
+use Filament\Schemas\Components\Grid;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\Locked;
 use TomatoPHP\FilamentBookmarksMenu\Models\Bookmark;
 use TomatoPHP\FilamentBookmarksMenu\Models\BookmarkLink;
-use TomatoPHP\FilamentIcons\Components\IconColumn;
 use TomatoPHP\FilamentIcons\Components\IconPicker;
 
 class Bookmarks extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static string $view = 'filament-bookmarks-menu::pages.bookmarks';
+    protected string $view = 'filament-bookmarks-menu::pages.bookmarks';
 
+    protected static bool $shouldRegisterNavigation = false;
+
+    #[Locked]
     public Bookmark $bookmark;
+
+    public function mount(): void
+    {
+        $bookmark = Bookmark::query()
+            ->visibleTo(auth()->user())
+            ->find(request()->query('id'));
+
+        abort_if(! $bookmark, 404);
+
+        $this->bookmark = $bookmark;
+    }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(BookmarkLink::query()->whereHas('bookmarks', function ($query){
-                $query->where('bookmark_id', $this->bookmark->id);
+            ->query(fn () => BookmarkLink::query()->whereHas('bookmarks', function ($query): void {
+                $query->whereKey($this->bookmark->getKey());
             }))
             ->columns([
                 TextColumn::make('name')
@@ -45,11 +56,10 @@ class Bookmarks extends Page implements HasTable
                     ->searchable(),
                 TextColumn::make('url')
                     ->label(trans('filament-bookmarks-menu::messages.page.table.url'))
-                    ->label('Bookmark')
                     ->view('filament-bookmarks-menu::columns.name'),
             ])
-            ->actions([
-                \Filament\Tables\Actions\Action::make('remove')
+            ->recordActions([
+                Action::make('remove')
                     ->tooltip(trans('filament-bookmarks-menu::messages.page.table.actions.remove.lable'))
                     ->requiresConfirmation()
                     ->color('danger')
@@ -57,21 +67,17 @@ class Bookmarks extends Page implements HasTable
                     ->modalHeading(trans('filament-bookmarks-menu::messages.page.table.actions.remove.modal'))
                     ->icon('heroicon-s-bookmark-slash')
                     ->hiddenLabel()
-                    ->action(function($record){
-                        $record->bookmarks()->detach($this->bookmark->id);
-
-                        if($record->bookmarks()->count() == 0){
-                            $record->delete();
-                        }
+                    ->action(function (BookmarkLink $record): void {
+                        $this->detachLink($record);
 
                         Notification::make()
                             ->title(trans('filament-bookmarks-menu::messages.page.table.actions.remove.notification.title'))
                             ->body(trans('filament-bookmarks-menu::messages.page.table.actions.remove.notification.body'))
                             ->success()
                             ->send();
-                    })
+                    }),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkAction::make('remove_bluk')
                     ->requiresConfirmation()
                     ->color('danger')
@@ -79,34 +85,24 @@ class Bookmarks extends Page implements HasTable
                     ->modalHeading(trans('filament-bookmarks-menu::messages.page.table.actions.bulk.modal'))
                     ->deselectRecordsAfterCompletion()
                     ->icon('heroicon-s-bookmark-slash')
-                    ->action(function (array $data, $records) {
-                        $records->each(function ($record){
-                            $record->bookmarks()->detach($this->bookmark->id);
-
-                            if($record->bookmarks()->count() == 0){
-                                $record->delete();
-                            }
-                        });
+                    ->action(function (Collection $records): void {
+                        $records->each(fn (BookmarkLink $record) => $this->detachLink($record));
 
                         Notification::make()
                             ->title(trans('filament-bookmarks-menu::messages.page.table.actions.bulk.notification.title'))
                             ->body(trans('filament-bookmarks-menu::messages.page.table.actions.bulk.notification.body'))
                             ->success()
                             ->send();
-                    })
+                    }),
             ]);
     }
 
-    public function mount()
+    protected function detachLink(BookmarkLink $link): void
     {
-        if(!request()->has('id')){
-            abort(404);
-        }
-        else {
-            $this->bookmark = Bookmark::find(request()->get('id'));
-            if(!$this->bookmark){
-                abort(404);
-            }
+        $link->bookmarks()->detach($this->bookmark->getKey());
+
+        if ($link->bookmarks()->count() === 0) {
+            $link->delete();
         }
     }
 
@@ -119,8 +115,8 @@ class Bookmarks extends Page implements HasTable
                 ->modalHeading(trans('filament-bookmarks-menu::messages.page.actions.delete.modal'))
                 ->color('danger')
                 ->requiresConfirmation()
-                ->action(function (){
-                    $this->bookmark->links()->delete();
+                ->action(function () {
+                    $this->bookmark->links()->each(fn (BookmarkLink $link) => $this->detachLink($link));
                     $this->bookmark->delete();
 
                     Notification::make()
@@ -129,39 +125,41 @@ class Bookmarks extends Page implements HasTable
                         ->success()
                         ->send();
 
-                    return redirect()->to(filament()->getCurrentPanel()->getUrl());
+                    return redirect()->to(filament()->getCurrentOrDefaultPanel()->getUrl());
                 }),
             Action::make('edit')
                 ->icon('heroicon-s-pencil')
                 ->color('warning')
                 ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.label'))
                 ->modalHeading(trans('filament-bookmarks-menu::messages.page.actions.edit.modal'))
-                ->fillForm($this->bookmark->toArray())
-                ->form([
+                ->fillForm(fn (): array => $this->bookmark->only(['name', 'icon', 'color', 'is_private']))
+                ->schema([
                     Grid::make([
                         'md' => 2,
-                        'sm' => 1
+                        'sm' => 1,
                     ])
-                    ->schema([
-                        TextInput::make('name')
-                            ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.name'))
-                            ->unique('bookmarks', 'name', ignorable: $this->bookmark)
-                            ->required()
-                            ->columnSpanFull(),
-                        IconPicker::make('icon')
-                            ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.icon')),
-                        ColorPicker::make('color')
-                            ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.color')),
-                        Toggle::make('is_private')
-                            ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.is_private'))
-                            ->columnSpanFull()
-                            ->live(),
-                    ])
+                        ->schema([
+                            TextInput::make('name')
+                                ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.name'))
+                                ->unique('bookmarks', 'name', ignorable: $this->bookmark)
+                                ->maxLength(255)
+                                ->required()
+                                ->columnSpanFull(),
+                            IconPicker::make('icon')
+                                ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.icon')),
+                            ColorPicker::make('color')
+                                ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.color')),
+                            Toggle::make('is_private')
+                                ->label(trans('filament-bookmarks-menu::messages.page.actions.edit.form.is_private'))
+                                ->columnSpanFull(),
+                        ]),
                 ])
-                ->action(function (array $data){
-                    if($data['is_private']){
-                        $data['user_type'] = get_class(auth()->user());
-                        $data['user_id'] = auth()->id();
+                ->action(function (array $data) {
+                    $user = auth()->user();
+
+                    if (($data['is_private'] ?? false) && $user) {
+                        $data['user_type'] = $user::class;
+                        $data['user_id'] = $user->getAuthIdentifier();
                     }
 
                     $this->bookmark->update($data);
@@ -172,23 +170,15 @@ class Bookmarks extends Page implements HasTable
                         ->success()
                         ->send();
 
-                    return redirect()->to(static::getUrl() . '?id=' . $this->bookmark->id);
-                })
+                    return redirect()->to(static::getUrl(['id' => $this->bookmark->getKey()]));
+                }),
         ];
     }
 
     public function getTitle(): string|Htmlable
     {
-        if($this->bookmark){
-            return $this->bookmark->name;
-        }
-        else {
-            return trans('filament-bookmarks-menu::messages.page.title');
-        }
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
+        return isset($this->bookmark)
+            ? $this->bookmark->name
+            : trans('filament-bookmarks-menu::messages.page.title');
     }
 }
