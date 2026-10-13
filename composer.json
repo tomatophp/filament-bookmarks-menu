@@ -2,6 +2,12 @@
     "name": "tomatophp/filament-bookmarks-menu",
     "type": "library",
     "description": "Add bookmarks and tags to your resources records and access theme form your sidebar",
+    "homepage": "https://tomatophp.com/en/plugins/filament-bookmarks-menu",
+    "support": {
+        "issues": "https://github.com/tomatophp/filament-bookmarks-menu/issues",
+        "source": "https://github.com/tomatophp/filament-bookmarks-menu",
+        "docs": "https://tomatophp.com/en/plugins/filament-bookmarks-menu"
+    },
     "keywords": [
         "php",
         "laravel",
